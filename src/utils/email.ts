@@ -1,31 +1,31 @@
-import nodemailer from 'nodemailer';
-import { User } from '../entities/user.entity';
-import config from 'config';
-import pug from 'pug';
-import { convert } from 'html-to-text';
+import nodemailer from "nodemailer";
+import { User } from "../entities/user.entity";
+import config from "config";
+import pug from "pug";
+import { convert } from "html-to-text";
 
 const smtp = config.get<{
   host: string;
   port: number;
   user: string;
   pass: string;
-}>('smtp');
+}>("smtp");
 
 export default class Email {
   firstName: string;
   to: string;
   from: string;
   constructor(public user: User, public url: string) {
-    this.firstName = user.name.split(' ')[0];
+    this.firstName = user.name.split(" ")[0];
     this.to = user.email;
-    this.from = `Codevo ${config.get<string>('emailFrom')}`;
+    this.from = `Codevo ${config.get<string>("emailFrom")}`;
   }
 
   private newTransport() {
     // if (process.env.NODE_ENV === 'production') {
     //   console.log('Hello')
     // }
-
+    
     return nodemailer.createTransport({
       ...smtp,
       auth: {
@@ -52,18 +52,18 @@ export default class Email {
     };
 
     // Send email
-    const info = await this.newTransport().sendMail(mailOptions);
+        const info = await this.newTransport().sendMail(mailOptions);
     console.log(nodemailer.getTestMessageUrl(info));
   }
 
   async sendVerificationCode() {
-    await this.send('verificationCode', 'Your account verification code');
+    await this.send("verificationCode", "Your account verification code");
   }
 
   async sendPasswordResetToken() {
     await this.send(
-      'resetPassword',
-      'Your password reset token (valid for only 10 minutes)'
+      "resetPassword",
+      "Your password reset token (valid for only 10 minutes)"
     );
   }
 }
