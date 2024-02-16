@@ -48,12 +48,13 @@ export const registerUserHandler = async (
   next: NextFunction
 ) => {
   try {
-    const { name, password, email } = req.body;
+    const { name, password, email, role } = req.body;
 
     const newUser = await createUser({
       name,
       email: email.toLowerCase(),
       password,
+      role,
     });
 
     const { hashedVerificationCode, verificationCode } =
@@ -138,6 +139,7 @@ export const loginUserHandler = async (
     res.status(200).json({
       status: 'success',
       access_token,
+      user
     });
   } catch (err: any) {
     next(err);
