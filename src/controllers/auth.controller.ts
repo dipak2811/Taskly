@@ -1,56 +1,42 @@
-import { CookieOptions, NextFunction, Request, Response } from 'express';
-import config from 'config';
-import crypto from 'crypto';
-import {
-  CreateUserInput,
-  LoginUserInput,
-  VerifyEmailInput,
-} from '../schemas/user.schema';
-import {
-  createUser,
-  findUser,
-  findUserByEmail,
-  findUserById,
-  signTokens,
-} from '../services/user.service';
-import AppError from '../utils/appError';
-import redisClient from '../utils/connectRedis';
-import { signJwt, verifyJwt } from '../utils/jwt';
-import { User } from '../entities/user.entity';
-import Email from '../utils/email';
+import { Request, Response, CookieOptions } from "express";
+import config from "config";
+import crypto from "crypto";
+import { CreateUserInput, LoginUserInput } from "../schemas/user.schema";
+import * as userService from "../services/user.service";
+import AppError from "../utils/appError";
+import redisClient from "../utils/connectRedis";
+import { signJwt, verifyJwt } from "../utils/jwt";
+import { User } from "../entities/user.entity";
+import Email from "../utils/email";
+import catchAsync from "../utils/catchAsync";
 
-const cookiesOptions: CookieOptions = {
+const cookiesOptions: CookieOptions & { secure?: boolean } = {
   httpOnly: true,
-  sameSite: 'lax',
+  sameSite: "lax",
 };
 
-if (process.env.NODE_ENV === 'production') cookiesOptions.secure = true;
-
-const accessTokenCookieOptions: CookieOptions = {
+if (process.env.NODE_ENV === "production") cookiesOptions.secure = true;
+const accessTokenCookieOptions = {
   ...cookiesOptions,
   expires: new Date(
-    Date.now() + config.get<number>('accessTokenExpiresIn') * 60 * 1000
+    Date.now() + config.get<number>("accessTokenExpiresIn") * 60 * 1000
   ),
-  maxAge: config.get<number>('accessTokenExpiresIn') * 60 * 1000,
+  maxAge: config.get<number>("accessTokenExpiresIn") * 60 * 1000,
 };
 
-const refreshTokenCookieOptions: CookieOptions = {
+const refreshTokenCookieOptions = {
   ...cookiesOptions,
   expires: new Date(
-    Date.now() + config.get<number>('refreshTokenExpiresIn') * 60 * 1000
+    Date.now() + config.get<number>("refreshTokenExpiresIn") * 60 * 1000
   ),
-  maxAge: config.get<number>('refreshTokenExpiresIn') * 60 * 1000,
+  maxAge: config.get<number>("refreshTokenExpiresIn") * 60 * 1000,
 };
 
-export const registerUserHandler = async (
-  req: Request<{}, {}, CreateUserInput>,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
+export const registerUserHandler = catchAsync(
+  async (req: Request<{}, {}, CreateUserInput>, res: Response) => {
     const { name, password, email, role } = req.body;
 
-    const newUser = await createUser({
+    const newUser = await userService.createUser({
       name,
       email: email.toLowerCase(),
       password,
@@ -64,103 +50,66 @@ export const registerUserHandler = async (
 
     // Send Verification Email
     const redirectUrl = `${config.get<string>(
-      'origin'
+      "origin"
     )}/verifyemail/${verificationCode}`;
 
-    try {
-      await new Email(newUser, redirectUrl).sendVerificationCode();
+    await new Email(newUser, redirectUrl).sendVerificationCode();
 
-      res.status(201).json({
-        status: 'success',
-        message:
-          'An email with a verification code has been sent to your email',
-      });
-    } catch (error) {
-      newUser.verificationCode = null;
-      await newUser.save();
-
-      return res.status(500).json({
-        status: 'error',
-        message: 'There was an error sending email, please try again',
-      });
-    }
-  } catch (err: any) {
-    if (err.code === '23505') {
-      return res.status(409).json({
-        status: 'fail',
-        message: 'User with that email already exist',
-      });
-    }
-    next(err);
+    res.status(201).json({
+      status: "success",
+      message: "An email with a verification code has been sent to your email",
+    });
   }
-};
+);
 
-export const loginUserHandler = async (
-  req: Request<{}, {}, LoginUserInput>,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
+export const loginUserHandler = catchAsync(
+  async (req: Request<{}, {}, LoginUserInput>, res: Response) => {
     const { email, password } = req.body;
-    const user = await findUserByEmail({ email });
+    const user = await userService.findUserByEmail({ email });
 
-    // 1. Check if user exist
     if (!user) {
-      return next(new AppError(400, 'Invalid email or password'));
+      throw new AppError(400, "Invalid email or password");
     }
 
-    // 2.Check if user is verified
     if (!user.verified) {
-      return next(
-        new AppError(
-          401,
-          'You are not verified, check your email to verify your account'
-        )
+      throw new AppError(
+        401,
+        "You are not verified, check your email to verify your account"
       );
     }
 
-    //3. Check if password is valid
     if (!(await User.comparePasswords(password, user.password))) {
-      return next(new AppError(400, 'Invalid email or password'));
+      throw new AppError(400, "Invalid email or password");
     }
 
-    // 4. Sign Access and Refresh Tokens
-    const { access_token, refresh_token } = await signTokens(user);
+    const { access_token, refresh_token } = await userService.signTokens(user);
 
-    // 5. Add Cookies
-    res.cookie('access_token', access_token, accessTokenCookieOptions);
-    res.cookie('refresh_token', refresh_token, refreshTokenCookieOptions);
-    res.cookie('logged_in', true, {
+    res.cookie("access_token", access_token, accessTokenCookieOptions);
+    res.cookie("refresh_token", refresh_token, refreshTokenCookieOptions);
+    res.cookie("logged_in", true, {
       ...accessTokenCookieOptions,
       httpOnly: false,
     });
 
-    // 6. Send response
     res.status(200).json({
-      status: 'success',
+      status: "success",
       access_token,
-      user
+      user,
     });
-  } catch (err: any) {
-    next(err);
   }
-};
+);
 
-export const verifyEmailHandler = async (
-  req: Request<VerifyEmailInput>,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
+export const verifyEmailHandler = catchAsync(
+  async (req: Request, res: Response) => {
     const verificationCode = crypto
-      .createHash('sha256')
+      .createHash("sha256")
       .update(req.params.verificationCode)
-      .digest('hex');
+      .digest("hex");
 
-    const user = await findUser({ verificationCode });
+    const user = await userService.findUser({ verificationCode });
 
     if (!user) {
-      return next(new AppError(401, 'Could not verify email'));
+      throw new AppError(401, "Could not verify email");
     }
 
     user.verified = true;
@@ -168,95 +117,71 @@ export const verifyEmailHandler = async (
     await user.save();
 
     res.status(200).json({
-      status: 'success',
-      message: 'Email verified successfully',
+      status: "success",
+      message: "Email verified successfully",
     });
-  } catch (err: any) {
-    next(err);
   }
-};
+);
 
-export const refreshAccessTokenHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
+export const refreshAccessTokenHandler = catchAsync(
+  async (req: Request, res: Response) => {
     const refresh_token = req.cookies.refresh_token;
 
-    const message = 'Could not refresh access token';
-
     if (!refresh_token) {
-      return next(new AppError(403, message));
+      throw new AppError(403, "Could not refresh access token");
     }
 
-    // Validate refresh token
     const decoded = verifyJwt<{ sub: string }>(
       refresh_token,
-      'refreshTokenPublicKey'
+      "refreshTokenPublicKey"
     );
 
     if (!decoded) {
-      return next(new AppError(403, message));
+      throw new AppError(403, "Could not refresh access token");
     }
 
-    // Check if user has a valid session
     const session = await redisClient.get(decoded.sub);
 
     if (!session) {
-      return next(new AppError(403, message));
+      throw new AppError(403, "Could not refresh access token");
     }
 
-    // Check if user still exist
-    const user = await findUserById(JSON.parse(session).id);
+    const user = await userService.findUserById(JSON.parse(session).id);
 
     if (!user) {
-      return next(new AppError(403, message));
+      throw new AppError(403, "Could not refresh access token");
     }
 
-    // Sign new access token
-    const access_token = signJwt({ sub: user.id }, 'accessTokenPrivateKey', {
-      expiresIn: `${config.get<number>('accessTokenExpiresIn')}m`,
+    const access_token = signJwt({ sub: user.id }, "accessTokenPrivateKey", {
+      expiresIn: `${config.get<number>("accessTokenExpiresIn")}m`,
     });
 
-    // 4. Add Cookies
-    res.cookie('access_token', access_token, accessTokenCookieOptions);
-    res.cookie('logged_in', true, {
+    res.cookie("access_token", access_token, accessTokenCookieOptions);
+    res.cookie("logged_in", true, {
       ...accessTokenCookieOptions,
       httpOnly: false,
     });
 
-    // 5. Send response
     res.status(200).json({
-      status: 'success',
+      status: "success",
       access_token,
     });
-  } catch (err: any) {
-    next(err);
   }
-};
+);
 
 const logout = (res: Response) => {
-  res.cookie('access_token', '', { maxAge: 1 });
-  res.cookie('refresh_token', '', { maxAge: 1 });
-  res.cookie('logged_in', '', { maxAge: 1 });
+  res.cookie("access_token", "", { maxAge: 1 });
+  res.cookie("refresh_token", "", { maxAge: 1 });
+  res.cookie("logged_in", "", { maxAge: 1 });
 };
 
-export const logoutHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const user = res.locals.user;
+export const logoutHandler = catchAsync(async (req: Request, res: Response) => {
+  const user = res.locals.user;
 
-    await redisClient.del(user.id);
-    logout(res);
+  await redisClient.del(user.id);
+  logout(res);
 
-    res.status(200).json({
-      status: 'success',
-    });
-  } catch (err: any) {
-    next(err);
-  }
-};
+  res.status(200).json({
+    status: "success",
+  });
+});

@@ -1,20 +1,13 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from "express";
+import catchAsync from "../utils/catchAsync";
 
-export const getMeHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const user = res.locals.user;
+export const getMeHandler = catchAsync(async (req: Request, res: Response) => {
+  const user = res.locals.user;
 
-    res.status(200).status(200).json({
-      status: 'success',
-      data: {
-        user,
-      },
-    });
-  } catch (err: any) {
-    next(err);
-  }
-};
+  res.status(200).json({
+    status: "success",
+    data: {
+      user,
+    },
+  });
+});

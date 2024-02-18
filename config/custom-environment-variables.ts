@@ -13,6 +13,8 @@ export default {
   refreshTokenPrivateKey: 'JWT_REFRESH_TOKEN_PRIVATE_KEY',
   refreshTokenPublicKey: 'JWT_REFRESH_TOKEN_PUBLIC_KEY',
 
+  redisUrl: 'REDIS_URL',
+
   smtp: {
     host: 'EMAIL_HOST',
     pass: 'EMAIL_PASS',

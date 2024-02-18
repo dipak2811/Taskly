@@ -1,6 +1,4 @@
-import { FindOptionsWhere } from "typeorm";
 import { Folder } from "../entities/folder.entity";
-import { User } from "../entities/user.entity";
 import { AppDataSource } from "../utils/data-source";
 
 const projectRepository = AppDataSource.getRepository(Folder);

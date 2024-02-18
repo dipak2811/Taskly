@@ -2,12 +2,10 @@ import {
   FindOptionsRelations,
   FindOptionsSelect,
   FindOptionsWhere,
-  Relation,
-  RelationOptions,
-} from 'typeorm';
-import { Post } from '../entities/post.entity';
-import { User } from '../entities/user.entity';
-import { AppDataSource } from '../utils/data-source';
+} from "typeorm";
+import { Post } from "../entities/post.entity";
+import { User } from "../entities/user.entity";
+import { AppDataSource } from "../utils/data-source";
 
 const postRepository = AppDataSource.getRepository(Post);
 

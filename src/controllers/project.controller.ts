@@ -1,24 +1,20 @@
-import { NextFunction, Request, Response } from "express";
-import { createFolder, getAllFolders } from "../services/project.service";
+import { Request, Response } from "express";
+import * as projectService from "../services/project.service";
+import catchAsync from "../utils/catchAsync"; // Assuming you have a catchAsync utility function
 
-export const createProject = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { name, path } = req.body;
-    const project = await createFolder(name, path,res.locals.user.id);
-    res.status(201).json(project);
-  } catch (error: any) {
-    next(error);
+export const createProject = catchAsync(async (req: Request, res: Response) => {
+  const { name, path } = req.body;
+  const project = await projectService.createFolder(
+    name,
+    path,
+    res.locals.user.id
+  );
+  res.status(201).json(project);
+});
+
+export const getAllProjects = catchAsync(
+  async (req: Request, res: Response) => {
+    const projects = await projectService.getAllFolders(res.locals.user.id);
+    res.status(200).json(projects);
   }
-};
-export const getAllProjects = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-        const projects = await getAllFolders(res.locals.user.id);
-        res.status(200).json(projects);
-};
+);
