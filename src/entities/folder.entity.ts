@@ -1,7 +1,7 @@
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany } from 'typeorm';
-import Model from './model.entity';
-import { User } from './user.entity';
-import { List } from './list.entity';
+import { Column, Entity, JoinTable, ManyToMany, OneToMany } from "typeorm";
+import Model from "./model.entity";
+import { User } from "./user.entity";
+import { List } from "./list.entity";
 
 @Entity("project_folders")
 export class Folder extends Model {
@@ -11,22 +11,19 @@ export class Folder extends Model {
   @Column()
   creatorId: string;
 
-  @Column({default:"/"})
+  @Column({ default: "/" })
   path: string;
 
-  @Column({default:false})
+  @Column({ default: false })
   isShared: boolean;
 
-  @Column({default:"write"})
+  @Column({ default: "write" })
   permission: string;
 
-  @ManyToMany(()=> User)
+  @ManyToMany(() => User)
   @JoinTable()
   users: User[];
 
-  @OneToMany(()=> List, list => list.id)
-  list:List[];
-
+  @OneToMany(() => List, (list) => list.id)
+  list: List[];
 }
-
-

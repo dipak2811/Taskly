@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class addedUserEntity1708253007717 implements MigrationInterface {
-    name = 'addedUserEntity1708253007717'
+export class addedUserEntity1708260778303 implements MigrationInterface {
+    name = 'addedUserEntity1708260778303'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TYPE "public"."task_status_enum" AS ENUM('todo', 'inProgress', 'testing', 'complete', 'onHold', 'canceled', 'reopened')`);

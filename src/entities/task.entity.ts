@@ -4,7 +4,6 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
-  OneToMany,
 } from "typeorm";
 import Model from "./model.entity";
 import { List } from "./list.entity";
