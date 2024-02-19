@@ -1,13 +1,30 @@
 import { Request, Response } from "express";
-import * as taskSerivce from "../services/task.service";
+import * as taskService from "../services/task.service";
 import catchAsync from "../utils/catchAsync";
 
 export const createTask = catchAsync(async (req: Request, res: Response) => {
   const reqBody = req.body;
   reqBody.reporterId = res.locals.user.id;
 
-  const list = await taskSerivce.create(reqBody);
+  const list = await taskService.create(reqBody);
   res.status(201).json(list);
+});
+
+export const updateTask = catchAsync(async (req: Request, res: Response) => {
+  const { taskId: id } = req.params;
+  const { name, description, label, dueDate, priority, assignees } = req.body;
+
+  const updatedTask = await taskService.updateTaskService(
+    id,
+    name,
+    description,
+    label,
+    dueDate,
+    priority,
+    assignees
+  );
+
+  res.status(200).json(updatedTask);
 });
 
 export const getAllTasks = catchAsync(async (req: Request, res: Response) => {
@@ -20,7 +37,7 @@ export const getAllTasks = catchAsync(async (req: Request, res: Response) => {
     sortBy: sortBy as string,
   };
 
-  const tasks = await taskSerivce.getAllTasksService(
+  const tasks = await taskService.getAllTasksService(
     listId,
     paginationOptions.page,
     paginationOptions.pageSize,
