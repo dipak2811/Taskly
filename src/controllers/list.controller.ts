@@ -8,6 +8,19 @@ export const createList = catchAsync(async (req: Request, res: Response) => {
   res.status(201).json(list);
 });
 
+export const editList = catchAsync(async (req: Request, res: Response) => {
+  const { listId: id } = req.params;
+  const { name, path, folderId } = req.body;
+
+  const updatedList = await listService.editListService(
+    id,
+    name,
+    path,
+    folderId
+  );
+  res.status(200).json(updatedList);
+});
+
 export const getAllLists = catchAsync(async (req: Request, res: Response) => {
   const { folderId } = req.params;
   const { page = 1, pageSize = 10, sortBy = "created_at" } = req.query;
