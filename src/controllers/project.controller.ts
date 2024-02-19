@@ -12,6 +12,22 @@ export const createProject = catchAsync(async (req: Request, res: Response) => {
   res.status(201).json(project);
 });
 
+export const editFolder = catchAsync(async (req: Request, res: Response) => {
+  const { projectId: id } = req.params;
+  const { name, path, isShared, permission, users } = req.body;
+
+  const updatedFolder = await projectService.editFolderService(
+    id,
+    name,
+    path,
+    isShared,
+    permission,
+    users
+  );
+
+  res.status(200).json(updatedFolder);
+});
+
 export const getAllProjects = catchAsync(
   async (req: Request, res: Response) => {
     const { page = 1, pageSize = 10, sortBy = "created_at" } = req.query;
