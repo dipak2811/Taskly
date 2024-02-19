@@ -12,6 +12,19 @@ export const createTask = catchAsync(async (req: Request, res: Response) => {
 
 export const getAllTasks = catchAsync(async (req: Request, res: Response) => {
   const { listId } = req.params;
-  const lists = await taskSerivce.getAllTasksService(listId);
-  res.status(200).json(lists);
+  const { page = 1, pageSize = 10, sortBy = "created_at" } = req.query;
+
+  const paginationOptions = {
+    page: parseInt(page as string),
+    pageSize: parseInt(pageSize as string),
+    sortBy: sortBy as string,
+  };
+
+  const tasks = await taskSerivce.getAllTasksService(
+    listId,
+    paginationOptions.page,
+    paginationOptions.pageSize,
+    paginationOptions.sortBy
+  );
+  res.status(200).json(tasks);
 });

@@ -1,3 +1,4 @@
+import { FindManyOptions } from "typeorm";
 import { Folder } from "../entities/folder.entity";
 import { AppDataSource } from "../utils/data-source";
 
@@ -17,10 +18,39 @@ export const createFolder = async (
     })
   );
 };
-export const getAllFolders = async (userId: string) => {
-  const user = await projectRepository.find({
+
+export const getAllFolders = async (
+  userId: string,
+  page: number,
+  pageSize: number,
+  sortBy: string
+): Promise<{
+  pageNo: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  totalDocs: number;
+  folders: any[];
+}> => {
+  const options: FindManyOptions = {
     relations: ["users"],
     where: { users: { id: userId } },
-  });
-  return user;
+    skip: (page - 1) * pageSize,
+    take: pageSize,
+    order: { [sortBy]: "DESC" },
+  };
+
+  const [folders, totalDocs] = await projectRepository.findAndCount(options);
+  const totalPages = Math.ceil(totalDocs / pageSize);
+  const hasNextPage = page < totalPages;
+  const hasPrevPage = page > 1;
+
+  return {
+    pageNo: page,
+    totalPages: totalPages,
+    hasNextPage: hasNextPage,
+    hasPrevPage: hasPrevPage,
+    totalDocs: totalDocs,
+    folders: folders,
+  };
 };

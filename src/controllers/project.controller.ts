@@ -14,7 +14,20 @@ export const createProject = catchAsync(async (req: Request, res: Response) => {
 
 export const getAllProjects = catchAsync(
   async (req: Request, res: Response) => {
-    const projects = await projectService.getAllFolders(res.locals.user.id);
+    const { page = 1, pageSize = 10, sortBy = "created_at" } = req.query;
+
+    const paginationOptions = {
+      page: parseInt(page as string),
+      pageSize: parseInt(pageSize as string),
+      sortBy: sortBy as string,
+    };
+
+    const projects = await projectService.getAllFolders(
+      res.locals.user.id,
+      paginationOptions.page,
+      paginationOptions.pageSize,
+      paginationOptions.sortBy
+    );
     res.status(200).json(projects);
   }
 );
