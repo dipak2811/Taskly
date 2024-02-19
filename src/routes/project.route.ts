@@ -9,6 +9,7 @@ router.use(deserializeUser, requireUser);
 
 router
   .post("/create", projectController.createProject)
-  .get("/", projectController.getAllProjects);
+  .get("/", projectController.getAllProjects)
+  .put("/:projectId", projectController.editFolder);
 
 export default router;
