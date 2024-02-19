@@ -20,6 +20,9 @@ export class Folder extends Model {
   @Column({ default: "write" })
   permission: string;
 
+  @Column({ default: false })
+  isDeleted: boolean;
+
   @ManyToMany(() => User)
   @JoinTable()
   users: User[];

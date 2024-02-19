@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import { deserializeUser } from "../middleware/deserializeUser";
 import { requireUser } from "../middleware/requireUser";
 import * as projectController from "../controllers/project.controller";
