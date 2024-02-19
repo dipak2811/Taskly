@@ -1,9 +1,11 @@
 import { FindManyOptions } from "typeorm";
-import { Task } from "../entities/task.entity";
+import { Task, TaskLable, TaskPriority } from "../entities/task.entity";
 import { ITask } from "../interfaces/task.interface";
 import { AppDataSource } from "../utils/data-source";
+import AppError from "../utils/appError";
+import { User } from "../entities/user.entity";
 
-const projectRepository = AppDataSource.getRepository(Task);
+const taskRepository = AppDataSource.getRepository(Task);
 
 export const create = async (reqBody: ITask) => {
   const {
@@ -22,8 +24,8 @@ export const create = async (reqBody: ITask) => {
 
   const newAssignees = assignees.map((assignee) => ({ id: assignee.id }));
 
-  return await projectRepository.save(
-    projectRepository.create({
+  return await taskRepository.save(
+    taskRepository.create({
       name,
       description,
       status,
@@ -37,6 +39,43 @@ export const create = async (reqBody: ITask) => {
       assignees: newAssignees,
     })
   );
+};
+
+export const updateTaskService = async (
+  id: string,
+  name?: string,
+  description?: string,
+  label?: TaskLable,
+  dueDate?: Date,
+  priority?: TaskPriority,
+  assignees?: User[]
+) => {
+  const task = await taskRepository.findOneBy({ id });
+
+  if (!task) {
+    throw new AppError(404, "Task not found");
+  }
+
+  if (name !== undefined) {
+    task.name = name;
+  }
+  if (description !== undefined) {
+    task.description = description;
+  }
+  if (label !== undefined) {
+    task.label = label;
+  }
+  if (dueDate !== undefined) {
+    task.dueDate = dueDate;
+  }
+  if (priority !== undefined) {
+    task.priority = priority;
+  }
+  if (assignees !== undefined) {
+    task.assignees = assignees;
+  }
+
+  return await taskRepository.save(task);
 };
 
 export const getAllTasksService = async (
@@ -60,9 +99,7 @@ export const getAllTasksService = async (
     order: { [sortBy]: "DESC" },
   };
 
-  const [tasks, totalTasksCount] = await projectRepository.findAndCount(
-    options
-  );
+  const [tasks, totalTasksCount] = await taskRepository.findAndCount(options);
 
   const totalDocs = totalTasksCount;
   const totalPages = Math.ceil(totalTasksCount / pageSize);

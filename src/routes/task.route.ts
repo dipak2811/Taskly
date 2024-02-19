@@ -9,6 +9,7 @@ router.use(deserializeUser, requireUser);
 
 router
   .post("/create", taskController.createTask)
-  .get("/:listId", taskController.getAllTasks);
+  .get("/:listId", taskController.getAllTasks)
+  .put("/:taskId", taskController.updateTask);
 
 export default router;
