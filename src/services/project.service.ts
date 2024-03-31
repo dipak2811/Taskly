@@ -21,7 +21,6 @@ export const createFolder = async (
   );
 };
 
-const folderRepository = AppDataSource.getRepository(Folder);
 
 export const editFolderService = async (
   id: string,
@@ -31,7 +30,7 @@ export const editFolderService = async (
   permission?: string,
   users?: User[]
 ) => {
-  const folder = await folderRepository.findOneBy({ id });
+  const folder = await projectRepository.findOneBy({ id });
 
   if (!folder) {
     throw new AppError(404, "Folder not found");
@@ -53,7 +52,7 @@ export const editFolderService = async (
     folder.users = users;
   }
 
-  return await folderRepository.save(folder);
+  return await projectRepository.save(folder);
 };
 
 export const getAllFolders = async (
@@ -70,7 +69,7 @@ export const getAllFolders = async (
   folders: any[];
 }> => {
   const options: FindManyOptions = {
-    relations: ["users"],
+    relations: { users: true,list:true },
     where: { users: { id: userId } },
     skip: (page - 1) * pageSize,
     take: pageSize,
@@ -90,4 +89,31 @@ export const getAllFolders = async (
     totalDocs: totalDocs,
     folders: folders,
   };
+};
+
+export const getFolder = async (projectId: string) => {
+  const folder = await projectRepository.findOne({
+    relations: { users:true,list:true },
+    where: { id: projectId },
+  });
+  
+  if (!folder) {
+    throw new AppError(404, "Folder not found");
+  }
+  return folder;
+};
+
+export const deleteFolder = async (projectId: string,userId:string) => {
+  const folder = await projectRepository.findOne({
+    relations: { users: true,list:true },
+    where: { id: projectId,isDeleted:false }, 
+  });
+  if (!folder) {
+    throw new AppError(404, "Folder not found");
+  }
+  folder.users = folder.users.filter((user) => user.id !== userId);
+  folder.isDeleted = true;
+  folder.deleted_at = new Date();
+  folder.list.forEach((list)=> list.isDeleted = true);
+  await projectRepository.manager.save(folder);
 };

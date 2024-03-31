@@ -12,6 +12,7 @@ router.use(folderPermission);
 router
   .post("/create", listController.createList)
   .get("/:folderId", listController.getAllLists)
-  .put("/:listId", listController.editList);
+  .put("/:listId", listController.editList)
+  .delete("/:listId", listController.deleteList);
 
 export default router;

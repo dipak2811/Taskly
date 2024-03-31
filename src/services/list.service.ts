@@ -87,3 +87,13 @@ export const getAllListService = async (
     lists: lists,
   };
 };
+
+export const deleteListService = async (listId: string) => {
+  const list = await projectRepository.findOneBy({ id: listId });
+
+  if (!list) {
+    throw new AppError(404, "List not found");
+  }
+
+  await projectRepository.remove(list);
+};
