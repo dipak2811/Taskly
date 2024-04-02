@@ -1,6 +1,7 @@
 import {
   Column,
   Entity,
+  JoinColumn,
   JoinTable,
   ManyToMany,
   ManyToOne,
@@ -74,7 +75,8 @@ export class Task extends Model {
   @Column({ type: "jsonb", nullable: true })
   comments: Comment[];
 
-  @ManyToOne(() => List, (list) => list.id)
+  @ManyToOne(() => List, (list) => list.tasks)
+  @JoinColumn({ name: "id" }) // Assuming your column is named list_id
   list: List;
 
   @ManyToMany(() => User)

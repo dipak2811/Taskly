@@ -39,3 +39,9 @@ export const getAllLists = catchAsync(async (req: Request, res: Response) => {
   );
   res.status(200).json(lists);
 });
+
+export const deleteList = catchAsync(async (req: Request, res: Response) => {
+  const { listId } = req.params;
+  await listService.deleteListService(listId);
+  res.status(200).json({ message: "List deleted successfully" });
+});

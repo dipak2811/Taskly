@@ -27,6 +27,6 @@ export class Folder extends Model {
   @JoinTable()
   users: User[];
 
-  @OneToMany(() => List, (list) => list.id)
+  @OneToMany(() => List, (list) => list.folder)
   list: List[];
 }

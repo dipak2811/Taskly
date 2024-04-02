@@ -21,8 +21,7 @@ export const create = async (reqBody: ITask) => {
     assignees,
     reporterId,
   } = reqBody;
-
-  const newAssignees = assignees.map((assignee) => ({ id: assignee.id }));
+  const newAssignees = assignees?.map((assignee) => ({ id: assignee.id }));
 
   return await taskRepository.save(
     taskRepository.create({
@@ -92,7 +91,7 @@ export const getAllTasksService = async (
   tasks: any[];
 }> => {
   const options: FindManyOptions = {
-    relations: ["list"],
+    relations: ["list", "assignees"],
     where: { list: { id: listId } },
     skip: (page - 1) * pageSize,
     take: pageSize,
@@ -100,6 +99,7 @@ export const getAllTasksService = async (
   };
 
   const [tasks, totalTasksCount] = await taskRepository.findAndCount(options);
+  console.log(tasks, totalTasksCount);
 
   const totalDocs = totalTasksCount;
   const totalPages = Math.ceil(totalTasksCount / pageSize);
@@ -114,4 +114,14 @@ export const getAllTasksService = async (
     totalDocs: totalDocs,
     tasks: tasks,
   };
+};
+
+export const deleteTaskService = async (taskId: string) => {
+  const task = await taskRepository.findOneBy({ id: taskId });
+
+  if (!task) {
+    throw new AppError(404, "Task not found");
+  }
+
+  await taskRepository.remove(task);
 };

@@ -45,3 +45,9 @@ export const getAllTasks = catchAsync(async (req: Request, res: Response) => {
   );
   res.status(200).json(tasks);
 });
+
+export const deleteTask = catchAsync(async (req: Request, res: Response) => {
+  const { taskId } = req.params;
+  await taskService.deleteTaskService(taskId);
+  res.status(200).json({ message: "Task deleted successfully" });
+});

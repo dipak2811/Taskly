@@ -12,6 +12,7 @@ router.use(folderPermission);
 router
   .post("/create", taskController.createTask)
   .get("/:listId", taskController.getAllTasks)
-  .put("/:taskId", taskController.updateTask);
+  .put("/:taskId", taskController.updateTask)
+  .delete("/:taskId", taskController.deleteTask);
 
 export default router;

@@ -47,3 +47,19 @@ export const getAllProjects = catchAsync(
     res.status(200).json(projects);
   }
 );
+
+export const getProject = catchAsync(async (req: Request, res: Response) => {
+  const { projectId } = req.params;
+  const project = await projectService.getFolder(projectId);
+  res.status(200).json(project);
+});
+
+export const deleteProject = catchAsync(
+  async (req: Request, res: Response) => {
+    const { projectId } = req.params;
+    const userId = res.locals.user.id;
+    await projectService.deleteFolder(projectId,userId);
+    res.status(204).json({ message: "Folder deleted successfully"});
+  }
+);
+

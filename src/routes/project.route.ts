@@ -10,6 +10,8 @@ router.use(deserializeUser, requireUser);
 router
   .post("/create", projectController.createProject)
   .get("/", projectController.getAllProjects)
-  .put("/:projectId", projectController.editFolder);
+  .get("/:projectId", projectController.getProject)
+  .put("/:projectId", projectController.editFolder)
+  .delete("/:projectId", projectController.deleteProject);
 
 export default router;
