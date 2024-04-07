@@ -3,22 +3,56 @@ import { List } from "../entities/list.entity";
 import { AppDataSource } from "../utils/data-source";
 import { Folder } from "../entities/folder.entity";
 import AppError from "../utils/appError";
+import { Kanban } from "../entities/kanban.entity";
+import { Columns } from "../entities/columns.entity";
 
 const projectRepository = AppDataSource.getRepository(List);
 const folderRepository = AppDataSource.getRepository(Folder);
+const kanbanRepository = AppDataSource.getRepository(Kanban);
+const columnsRepository = AppDataSource.getRepository(Columns);
 
 export const createListService = async (
   name: string,
   path: string,
-  folderId: string
+  folderId: string,
+  creatorId: string
 ) => {
-  return await projectRepository.save(
+  const list = await projectRepository.save(
     projectRepository.create({
       name,
       path,
       folder: { id: folderId },
     })
   );
+
+  const kanban = kanbanRepository.create({
+    creatorId: creatorId, // Provide the creator's ID
+    name: name, // Provide a name for the Kanban board
+    users: [], // Optionally provide users
+    list: list, // Provide the list
+  });
+
+  await kanbanRepository.save(kanban);
+
+  const defaultColumns = [
+    { name: "To Do", order: 1 },
+    { name: "In Progress", order: 2 },
+    { name: "On Hold", order: 3 },
+    { name: "Complete", order: 4 },
+  ]; // Define your default column names and orders
+
+  const columns = defaultColumns.map(({ name, order }) => {
+    const column = new Columns();
+    column.name = name;
+    column.order = order;
+    column.kanban = kanban;
+    return column;
+  });
+
+  // Save default columns
+  await columnsRepository.save(columns);
+
+  return list;
 };
 
 export const editListService = async (

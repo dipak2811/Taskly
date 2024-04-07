@@ -4,7 +4,13 @@ import catchAsync from "../utils/catchAsync";
 
 export const createList = catchAsync(async (req: Request, res: Response) => {
   const { name, path, folderId } = req.body;
-  const list = await listService.createListService(name, path, folderId);
+  const user = res.locals.user;
+  const list = await listService.createListService(
+    name,
+    path,
+    folderId,
+    user.id
+  );
   res.status(201).json(list);
 });
 
