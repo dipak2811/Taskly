@@ -28,7 +28,7 @@ export enum TaskPriority {
   TRIVIAL = "trivial",
 }
 
-export enum TaskLable {
+export enum TaskLabel {
   FRONTEND = "frontend",
   BACKEND = "backend",
   DATABASE = "database",
@@ -57,14 +57,14 @@ export class Task extends Model {
   @Column({ type: "enum", enum: TaskStatus, default: TaskStatus.TODO })
   status: TaskStatus;
 
-  @Column({ type: "enum", enum: TaskLable })
-  label: TaskLable;
+  @Column({ array: true, type: "enum", enum: TaskLabel, default: [] })
+  label: TaskLabel;
 
   @Column()
   reporterId: string;
 
-  @Column()
-  dueDate: Date;
+  @Column({ array: true, type: "timestamp", default: [] })
+  dueDate: string[];
 
   @Column({ type: "enum", enum: TaskPriority, default: TaskPriority.MAJOR })
   priority: TaskPriority;

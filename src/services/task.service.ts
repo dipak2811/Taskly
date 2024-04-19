@@ -1,5 +1,5 @@
 import { FindManyOptions } from "typeorm";
-import { Task, TaskLable, TaskPriority } from "../entities/task.entity";
+import { Task, TaskLabel, TaskPriority } from "../entities/task.entity";
 import { ITask } from "../interfaces/task.interface";
 import { AppDataSource } from "../utils/data-source";
 import AppError from "../utils/appError";
@@ -30,7 +30,7 @@ export const create = async (reqBody: ITask) => {
       status,
       label,
       reporterId,
-      dueDate,
+      dueDate: dueDate.map((date: string) => new Date(date).toISOString()),
       priority,
       attachment,
       comments,
@@ -44,8 +44,8 @@ export const updateTaskService = async (
   id: string,
   name?: string,
   description?: string,
-  label?: TaskLable,
-  dueDate?: Date,
+  label?: TaskLabel,
+  dueDate?: string[],
   priority?: TaskPriority,
   assignees?: User[]
 ) => {
@@ -65,7 +65,7 @@ export const updateTaskService = async (
     task.label = label;
   }
   if (dueDate !== undefined) {
-    task.dueDate = dueDate;
+    task.dueDate = dueDate?.map((date: string) => new Date(date).toISOString());
   }
   if (priority !== undefined) {
     task.priority = priority;

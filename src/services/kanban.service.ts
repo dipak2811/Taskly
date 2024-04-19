@@ -1,9 +1,11 @@
 import { Kanban } from "../entities/kanban.entity";
 import { Task } from "../entities/task.entity";
+import { User } from "../entities/user.entity";
 import { AppDataSource } from "../utils/data-source";
 
 const kanbanRepository = AppDataSource.getRepository(Kanban);
 const taskRepository = AppDataSource.getRepository(Task);
+const userRepository = AppDataSource.getRepository(User);
 
 const getTaskColumn = (status: string) => {
   switch (status) {
@@ -52,12 +54,30 @@ export const getKanbanBoard = async (listId: string) => {
   });
 
   const tasksResponse: any = {};
-  tasks.forEach((task) => {
-    tasksResponse[`${task.id}`] = {
-      assignee: task.assignees,
-      ...task,
-    };
-  });
+
+  await Promise.all(
+    tasks.map(async (task) => {
+      const reporter = await userRepository.findOne({
+        where: { id: task.reporterId },
+      });
+      tasksResponse[`${task.id}`] = {
+        ...task,
+        assignees: task.assignees.map((assignee) => ({
+          id: assignee.id,
+          name: assignee.name,
+          email: assignee.email,
+          avatarUrl: assignee.photo,
+          role: assignee.role,
+        })),
+        reporter: {
+          id: reporter?.id,
+          name: reporter?.name,
+          email: reporter?.email,
+          avatarUrl: reporter?.photo,
+        },
+      };
+    })
+  );
 
   const orderedResponse = kanbanBoard.columns
     .sort((a, b) => a.order - b.order)
