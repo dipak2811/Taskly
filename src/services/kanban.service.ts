@@ -91,3 +91,5 @@ export const getKanbanBoard = async (listId: string) => {
     },
   };
 };
+
+export const moveTask = async (updateColumns: any) => {};

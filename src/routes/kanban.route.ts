@@ -9,6 +9,8 @@ const router = express.Router();
 router.use(deserializeUser, requireUser);
 router.use(folderPermission);
 
-router.get("/:listId", kanbanController.getKanbanBoard);
+router
+  .get("/:listId", kanbanController.getKanbanBoard)
+  .post("/move-task", kanbanController.moveTask);
 
 export default router;

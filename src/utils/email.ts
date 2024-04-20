@@ -18,14 +18,14 @@ export default class Email {
   constructor(public user: User, public url: string) {
     this.firstName = user.name.split(" ")[0];
     this.to = user.email;
-    this.from = `Codevo ${config.get<string>("emailFrom")}`;
+    this.from = `Taskly Team ${config.get<string>("emailFrom")}`;
   }
 
   private newTransport() {
     // if (process.env.NODE_ENV === 'production') {
     //   console.log('Hello')
     // }
-    
+
     return nodemailer.createTransport({
       ...smtp,
       auth: {
@@ -52,7 +52,7 @@ export default class Email {
     };
 
     // Send email
-        const info = await this.newTransport().sendMail(mailOptions);
+    const info = await this.newTransport().sendMail(mailOptions);
     console.log(nodemailer.getTestMessageUrl(info));
   }
 

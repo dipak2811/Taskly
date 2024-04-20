@@ -34,10 +34,10 @@ const refreshTokenCookieOptions = {
 
 export const registerUserHandler = catchAsync(
   async (req: Request<{}, {}, CreateUserInput>, res: Response) => {
-    const { name, password, email, role } = req.body;
+    const { firstName, lastName, password, email, role } = req.body;
 
     const newUser = await userService.createUser({
-      name,
+      name: `${firstName} ${lastName}`,
       email: email.toLowerCase(),
       password,
       role,
@@ -51,12 +51,16 @@ export const registerUserHandler = catchAsync(
     // Send Verification Email
     const redirectUrl = `${config.get<string>(
       "origin"
-    )}/verifyemail/${verificationCode}`;
+    )}/auth/jwt/verify?code=${verificationCode}`;
+    // const redirectUrl = `${config.get<string>(
+    //   "origin"
+    // )}/auth/jwt/verify?code=60729ba0afe11dc3fffde3582a8521909aeaedee48cdd9efce31116288abb3b0`;
 
-    await new Email(newUser, redirectUrl).sendVerificationCode();
+    // await new Email(newUser, redirectUrl).sendVerificationCode();
 
     res.status(201).json({
       status: "success",
+      redirectUrl,
       message: "An email with a verification code has been sent to your email",
     });
   }
