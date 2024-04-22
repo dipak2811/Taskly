@@ -1,7 +1,9 @@
+import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { Kanban } from "../entities/kanban.entity";
-import { Task } from "../entities/task.entity";
+import { Task, TaskStatus } from "../entities/task.entity";
 import { User } from "../entities/user.entity";
 import { AppDataSource } from "../utils/data-source";
+import { get } from "lodash";
 
 const kanbanRepository = AppDataSource.getRepository(Kanban);
 const taskRepository = AppDataSource.getRepository(Task);
@@ -25,6 +27,27 @@ const getTaskColumn = (status: string) => {
       return "Reopened";
     default:
       return "To Do";
+  }
+};
+
+const getTaskStatus = (column: string) => {
+  switch (column) {
+    case "To Do":
+      return "todo";
+    case "In Progress":
+      return "inProgress";
+    case "Testing":
+      return "testing";
+    case "Complete":
+      return "complete";
+    case "On Hold":
+      return "onHold";
+    case "Canceled":
+      return "canceled";
+    case "Reopened":
+      return "reopened";
+    default:
+      return "todo";
   }
 };
 
@@ -92,4 +115,23 @@ export const getKanbanBoard = async (listId: string) => {
   };
 };
 
-export const moveTask = async (updateColumns: any) => {};
+export const moveTask = async (updateColumns: any) => {
+  let listId: any;
+  Object.keys(updateColumns).forEach(async (column: string) => {
+    const { id, name, taskIds } = updateColumns[column];
+    await Promise.all(
+      taskIds.map(async (taskId: string, index: number) => {
+        const task = await taskRepository.findOne({ where: { id: taskId } });
+        if (!task) {
+          throw new Error("Task not found");
+        }
+        listId = task?.list?.id;
+        await taskRepository.update(taskId, {
+          status: getTaskStatus(name) as QueryDeepPartialEntity<TaskStatus>,
+        });
+      })
+    );
+  });
+  const res = await getKanbanBoard(listId);
+  return res;
+};

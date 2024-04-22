@@ -26,6 +26,7 @@ export enum TaskPriority {
   MAJOR = "major",
   MINOR = "minor",
   TRIVIAL = "trivial",
+  MEDIUM = "medium",
 }
 
 export enum TaskLabel {
@@ -69,14 +70,13 @@ export class Task extends Model {
   @Column({ type: "enum", enum: TaskPriority, default: TaskPriority.MAJOR })
   priority: TaskPriority;
 
-  @Column("simple-array")
+  @Column("simple-array", { nullable: true })
   attachment: string[];
 
   @Column({ type: "jsonb", nullable: true })
   comments: Comment[];
 
-  @ManyToOne(() => List, (list) => list.tasks)
-  @JoinColumn({ name: "id" }) // Assuming your column is named list_id
+  @ManyToOne(() => List, (list) => list.tasks) // Assuming your column is named list_id
   list: List;
 
   @ManyToMany(() => User)

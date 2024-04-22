@@ -30,4 +30,7 @@ export interface ITask {
   comments: Comment[];
   list: List;
   assignees: Assignee[];
+  reporter: {
+    id: string;
+  };
 }

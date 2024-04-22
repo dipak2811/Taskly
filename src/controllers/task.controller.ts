@@ -6,8 +6,8 @@ export const createTask = catchAsync(async (req: Request, res: Response) => {
   const reqBody = req.body;
   reqBody.reporterId = res.locals.user.id;
 
-  const list = await taskService.create(reqBody);
-  res.status(201).json(list);
+  const board = await taskService.create(reqBody);
+  res.status(201).json(board);
 });
 
 export const updateTask = catchAsync(async (req: Request, res: Response) => {
@@ -48,6 +48,7 @@ export const getAllTasks = catchAsync(async (req: Request, res: Response) => {
 
 export const deleteTask = catchAsync(async (req: Request, res: Response) => {
   const { taskId } = req.params;
-  await taskService.deleteTaskService(taskId);
-  res.status(200).json({ message: "Task deleted successfully" });
+  const { listId } = req.body;
+  const board = await taskService.deleteTaskService(taskId, listId);
+  res.status(200).json(board);
 });

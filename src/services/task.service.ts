@@ -1,9 +1,37 @@
 import { FindManyOptions } from "typeorm";
-import { Task, TaskLabel, TaskPriority } from "../entities/task.entity";
+import {
+  Task,
+  TaskLabel,
+  TaskPriority,
+  TaskStatus,
+} from "../entities/task.entity";
 import { ITask } from "../interfaces/task.interface";
 import { AppDataSource } from "../utils/data-source";
 import AppError from "../utils/appError";
 import { User } from "../entities/user.entity";
+import { getKanbanBoard } from "./kanban.service";
+import { report } from "process";
+
+const getTaskStatus = (column: string) => {
+  switch (column) {
+    case "To Do":
+      return "todo";
+    case "In Progress":
+      return "inProgress";
+    case "Testing":
+      return "testing";
+    case "Complete":
+      return "complete";
+    case "On Hold":
+      return "onHold";
+    case "Canceled":
+      return "canceled";
+    case "Reopened":
+      return "reopened";
+    default:
+      return "todo";
+  }
+};
 
 const taskRepository = AppDataSource.getRepository(Task);
 
@@ -19,17 +47,17 @@ export const create = async (reqBody: ITask) => {
     comments,
     list,
     assignees,
-    reporterId,
+    reporter,
   } = reqBody;
   const newAssignees = assignees?.map((assignee) => ({ id: assignee.id }));
 
-  return await taskRepository.save(
+  await taskRepository.save(
     taskRepository.create({
       name,
       description,
-      status,
+      status: getTaskStatus(status) as TaskStatus,
       label,
-      reporterId,
+      reporterId: reporter?.id,
       dueDate: dueDate.map((date: string) => new Date(date).toISOString()),
       priority,
       attachment,
@@ -38,6 +66,9 @@ export const create = async (reqBody: ITask) => {
       assignees: newAssignees,
     })
   );
+
+  const board = await getKanbanBoard(list.id);
+  return board;
 };
 
 export const updateTaskService = async (
@@ -116,7 +147,7 @@ export const getAllTasksService = async (
   };
 };
 
-export const deleteTaskService = async (taskId: string) => {
+export const deleteTaskService = async (taskId: string, listId: string) => {
   const task = await taskRepository.findOneBy({ id: taskId });
 
   if (!task) {
@@ -124,4 +155,6 @@ export const deleteTaskService = async (taskId: string) => {
   }
 
   await taskRepository.remove(task);
+  const board = await getKanbanBoard(listId);
+  return board;
 };

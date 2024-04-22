@@ -9,7 +9,6 @@ export const getKanbanBoard = async (req: Request, res: Response) => {
 
 export const moveTask = async (req: Request, res: Response) => {
   const { updateColumns } = req.body;
-  console.log(updateColumns);
-  await KanbanService.moveTask(updateColumns);
-  res.json({ message: "Task moved successfully" });
+  const updatedBoard = await KanbanService.moveTask(updateColumns);
+  res.json(updatedBoard);
 };
