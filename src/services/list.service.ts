@@ -17,6 +17,8 @@ export const createListService = async (
   folderId: string,
   creatorId: string
 ) => {
+  const pageSize = 10;
+  const page = 1;
   const list = await projectRepository.save(
     projectRepository.create({
       name,
@@ -52,7 +54,27 @@ export const createListService = async (
   // Save default columns
   await columnsRepository.save(columns);
 
-  return list;
+  const options: FindManyOptions = {
+    relations: { users: true, list: true },
+    where: { users: { id: creatorId } },
+    skip: (page - 1) * pageSize,
+    take: pageSize,
+    order: { created_at: "DESC" },
+  };
+
+  const [folders, totalDocs] = await folderRepository.findAndCount(options);
+  const totalPages = Math.ceil(totalDocs / pageSize);
+  const hasNextPage = page < totalPages;
+  const hasPrevPage = page > 1;
+
+  return {
+    pageNo: page,
+    totalPages: totalPages,
+    hasNextPage: hasNextPage,
+    hasPrevPage: hasPrevPage,
+    totalDocs: totalDocs,
+    folders: folders,
+  };
 };
 
 export const editListService = async (
