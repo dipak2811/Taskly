@@ -12,16 +12,20 @@ export const createTask = catchAsync(async (req: Request, res: Response) => {
 
 export const updateTask = catchAsync(async (req: Request, res: Response) => {
   const { taskId: id } = req.params;
-  const { name, description, label, dueDate, priority, assignees } = req.body;
+  const { taskData, listId } = req.body;
+  const { name, description, label, dueDate, priority, assignees, status } =
+    taskData;
 
   const updatedTask = await taskService.updateTaskService(
     id,
+    listId,
     name,
     description,
     label,
     dueDate,
     priority,
-    assignees
+    assignees,
+    status
   );
 
   res.status(200).json(updatedTask);

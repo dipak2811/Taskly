@@ -11,7 +11,7 @@ import { List } from "./list.entity";
 import { User } from "./user.entity";
 
 export enum TaskStatus {
-  TODO = "todo",
+  TODO = "toDo",
   INPROGRESS = "inProgress",
   TESTING = "testing",
   COMPLETE = "complete",

@@ -10,7 +10,6 @@ import { AppDataSource } from "../utils/data-source";
 import AppError from "../utils/appError";
 import { User } from "../entities/user.entity";
 import { getKanbanBoard } from "./kanban.service";
-import { report } from "process";
 
 const getTaskStatus = (column: string) => {
   switch (column) {
@@ -73,12 +72,14 @@ export const create = async (reqBody: ITask) => {
 
 export const updateTaskService = async (
   id: string,
+  listId: string,
   name?: string,
   description?: string,
   label?: TaskLabel,
   dueDate?: string[],
   priority?: TaskPriority,
-  assignees?: User[]
+  assignees?: User[],
+  status?: TaskStatus
 ) => {
   const task = await taskRepository.findOneBy({ id });
 
@@ -104,8 +105,14 @@ export const updateTaskService = async (
   if (assignees !== undefined) {
     task.assignees = assignees;
   }
+  if (status !== undefined) {
+    task.status = getTaskStatus(status) as TaskStatus;
+  }
+  await taskRepository.save(task);
 
-  return await taskRepository.save(task);
+  const board = await getKanbanBoard(listId);
+
+  return board;
 };
 
 export const getAllTasksService = async (
