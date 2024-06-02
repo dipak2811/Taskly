@@ -10,11 +10,12 @@ import { AppDataSource } from "../utils/data-source";
 import AppError from "../utils/appError";
 import { User } from "../entities/user.entity";
 import { getKanbanBoard } from "./kanban.service";
+import { Comments } from "../entities/commets.entity";
 
 const getTaskStatus = (column: string) => {
   switch (column) {
     case "To Do":
-      return "todo";
+      return "toDo";
     case "In Progress":
       return "inProgress";
     case "Testing":
@@ -28,11 +29,12 @@ const getTaskStatus = (column: string) => {
     case "Reopened":
       return "reopened";
     default:
-      return "todo";
+      return "toDo";
   }
 };
 
 const taskRepository = AppDataSource.getRepository(Task);
+const commentRepository = AppDataSource.getRepository(Comments);
 
 export const create = async (reqBody: ITask) => {
   const {
@@ -43,13 +45,12 @@ export const create = async (reqBody: ITask) => {
     dueDate,
     priority,
     attachment,
-    comments,
+    comments = [],
     list,
     assignees,
     reporter,
   } = reqBody;
   const newAssignees = assignees?.map((assignee) => ({ id: assignee.id }));
-
   await taskRepository.save(
     taskRepository.create({
       name,
@@ -162,6 +163,50 @@ export const deleteTaskService = async (taskId: string, listId: string) => {
   }
 
   await taskRepository.remove(task);
+  const board = await getKanbanBoard(listId);
+  return board;
+};
+
+export const createCommentService = async (
+  taskId: string,
+  comment: any,
+  listId: string,
+  userId: string
+) => {
+  const options = {
+    relations: { comments: true },
+    where: { id: taskId },
+  };
+  const task = await taskRepository.findOne(options);
+  const user = await AppDataSource.getRepository(User).findOneBy({
+    id: userId,
+  });
+  if (!task) {
+    throw new AppError(404, "Task not found");
+  }
+  await commentRepository.save(
+    commentRepository.create({
+      ...comment,
+      task: task,
+      user: user,
+    })
+  );
+
+  const board = await getKanbanBoard(listId);
+  return board;
+};
+
+export const deleteCommentService = async (
+  commentId: string,
+  listId: string
+) => {
+  const comment = await commentRepository.findOneBy({ id: commentId });
+
+  if (!comment) {
+    throw new AppError(404, "Comment not found");
+  }
+
+  await commentRepository.remove(comment);
   const board = await getKanbanBoard(listId);
   return board;
 };

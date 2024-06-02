@@ -5,10 +5,12 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToMany,
 } from "typeorm";
 import Model from "./model.entity";
 import { List } from "./list.entity";
 import { User } from "./user.entity";
+import { Comments } from "./commets.entity";
 
 export enum TaskStatus {
   TODO = "toDo",
@@ -40,12 +42,6 @@ export enum TaskLabel {
   RESEARCH = "research",
   OTHER = "other",
 }
-interface Comment {
-  commentTitle: string;
-  commentTime: Date;
-  commentAttachment: string[];
-  commentCreator: string;
-}
 
 @Entity("task")
 export class Task extends Model {
@@ -73,8 +69,8 @@ export class Task extends Model {
   @Column("simple-array", { nullable: true })
   attachment: string[];
 
-  @Column({ type: "jsonb", nullable: true })
-  comments: Comment[];
+  @OneToMany(() => Comments, (comment) => comment.task)
+  comments: Comments[];
 
   @ManyToOne(() => List, (list) => list.tasks) // Assuming your column is named list_id
   list: List;

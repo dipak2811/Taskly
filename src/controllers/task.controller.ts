@@ -56,3 +56,22 @@ export const deleteTask = catchAsync(async (req: Request, res: Response) => {
   const board = await taskService.deleteTaskService(taskId, listId);
   res.status(200).json(board);
 });
+
+export const createComment = catchAsync(async (req: Request, res: Response) => {
+  const { taskId } = req.params;
+  const { comments, listId } = req.body;
+  const board = await taskService.createCommentService(
+    taskId,
+    comments,
+    listId,
+    res.locals.user.id
+  );
+  res.status(201).json(board);
+});
+
+export const deleteComment = catchAsync(async (req: Request, res: Response) => {
+  const { commentId } = req.params;
+  const { listId } = req.body;
+  const board = await taskService.deleteCommentService(commentId, listId);
+  res.status(200).json(board);
+});

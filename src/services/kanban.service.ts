@@ -11,7 +11,7 @@ const userRepository = AppDataSource.getRepository(User);
 
 const getTaskColumn = (status: string) => {
   switch (status) {
-    case "todo":
+    case "toDo":
       return "To Do";
     case "inProgress":
       return "In Progress";
@@ -33,7 +33,7 @@ const getTaskColumn = (status: string) => {
 const getTaskStatus = (column: string) => {
   switch (column) {
     case "To Do":
-      return "todo";
+      return "toDo";
     case "In Progress":
       return "inProgress";
     case "Testing":
@@ -47,7 +47,7 @@ const getTaskStatus = (column: string) => {
     case "Reopened":
       return "reopened";
     default:
-      return "todo";
+      return "toDo";
   }
 };
 
@@ -62,7 +62,7 @@ export const getKanbanBoard = async (listId: string) => {
 
   const tasks = await taskRepository.find({
     where: { list: { id: listId } },
-    relations: ["assignees"],
+    relations: ["assignees", "comments", "comments.user"],
   });
 
   const columnsResponse: any = {};
@@ -85,6 +85,14 @@ export const getKanbanBoard = async (listId: string) => {
       });
       tasksResponse[`${task.id}`] = {
         ...task,
+        comments: task.comments.map((comment) => ({
+          ...comment,
+          userId: comment.user.id,
+          name: comment.user.name,
+          email: comment.user.email,
+          avatarUrl: comment.user.photo,
+          user: null,
+        })),
         assignees: task.assignees.map((assignee) => ({
           id: assignee.id,
           name: assignee.name,

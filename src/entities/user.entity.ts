@@ -1,20 +1,21 @@
-import crypto from 'crypto';
-import { Entity, Column, Index, BeforeInsert, OneToMany } from 'typeorm';
-import bcrypt from 'bcryptjs';
-import Model from './model.entity';
-import { Post } from './post.entity';
+import crypto from "crypto";
+import { Entity, Column, Index, BeforeInsert, OneToMany } from "typeorm";
+import bcrypt from "bcryptjs";
+import Model from "./model.entity";
+import { Post } from "./post.entity";
+import { Comments } from "./commets.entity";
 
 export enum RoleEnumType {
-  USER = 'user',
-  ADMIN = 'admin',
+  USER = "user",
+  ADMIN = "admin",
 }
 
-@Entity('users')
+@Entity("users")
 export class User extends Model {
   @Column()
   name: string;
 
-  @Index('email_index')
+  @Index("email_index")
   @Column({
     unique: true,
   })
@@ -24,14 +25,14 @@ export class User extends Model {
   password: string;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: RoleEnumType,
     default: RoleEnumType.USER,
   })
   role: RoleEnumType;
 
   @Column({
-    default: 'default.png',
+    default: "default.png",
   })
   photo: string;
 
@@ -40,15 +41,18 @@ export class User extends Model {
   })
   verified: boolean;
 
-  @Index('verificationCode_index')
+  @Index("verificationCode_index")
   @Column({
-    type: 'text',
+    type: "text",
     nullable: true,
   })
   verificationCode!: string | null;
 
   @OneToMany(() => Post, (post) => post.user)
   posts: Post[];
+
+  @OneToMany(() => Comments, (comment) => comment.user)
+  comments: Comments[];
 
   @BeforeInsert()
   async hashPassword() {
@@ -63,12 +67,12 @@ export class User extends Model {
   }
 
   static createVerificationCode() {
-    const verificationCode = crypto.randomBytes(32).toString('hex');
+    const verificationCode = crypto.randomBytes(32).toString("hex");
 
     const hashedVerificationCode = crypto
-      .createHash('sha256')
+      .createHash("sha256")
       .update(verificationCode)
-      .digest('hex');
+      .digest("hex");
 
     return { verificationCode, hashedVerificationCode };
   }

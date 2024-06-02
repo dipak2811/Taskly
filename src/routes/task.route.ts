@@ -13,6 +13,8 @@ router
   .post("/create", taskController.createTask)
   .get("/:listId", taskController.getAllTasks)
   .put("/:taskId", taskController.updateTask)
-  .post("/:taskId", taskController.deleteTask);
+  .post("/:taskId", taskController.deleteTask)
+  .post("/:taskId/comment", taskController.createComment)
+  .delete("/comment/:commentId", taskController.deleteComment);
 
 export default router;

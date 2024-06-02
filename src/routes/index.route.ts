@@ -5,6 +5,7 @@ import projectRouter from "./project.route";
 import listRouter from "./list.route";
 import taskRouter from "./task.route";
 import kanbanRoutes from "./kanban.route";
+import uploadRouter from "./upload.route";
 
 const router = express.Router();
 
@@ -14,5 +15,6 @@ router.use("/projects", projectRouter);
 router.use("/lists", listRouter);
 router.use("/tasks", taskRouter);
 router.use("/kanban", kanbanRoutes);
+router.use("/upload", uploadRouter);
 
 export default router;

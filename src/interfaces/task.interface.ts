@@ -1,3 +1,4 @@
+import { Comments } from "../entities/commets.entity";
 import { TaskLabel, TaskPriority, TaskStatus } from "../entities/task.entity";
 
 export interface Assignee {
@@ -10,14 +11,6 @@ export interface List {
   // Add other properties of the list if needed
 }
 
-export interface Comment {
-  commentTitle: string;
-  commentTime: Date;
-  commentAttachment: string[];
-  commentCreator: string;
-  // Add other properties of the comment if needed
-}
-
 export interface ITask {
   name: string;
   description: string;
@@ -27,7 +20,7 @@ export interface ITask {
   dueDate: string[];
   priority: TaskPriority; // Assuming TaskPriority is an enum
   attachment: string[];
-  comments: Comment[];
+  comments: Comments[];
   list: List;
   assignees: Assignee[];
   reporter: {
