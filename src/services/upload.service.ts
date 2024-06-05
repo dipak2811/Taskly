@@ -1,7 +1,12 @@
 import { Task } from "../entities/task.entity";
 import { AppDataSource } from "../utils/data-source";
 import { firestore, storage } from "../utils/firebase-config";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
 import { getKanbanBoard } from "./kanban.service";
 import { v4 as uuidv4 } from "uuid"; //
 import { addDoc, collection } from "firebase/firestore";
@@ -64,5 +69,38 @@ export const uploadAndSaveFiles = async (
   } catch (error) {
     console.error("Error uploading files:", error);
     throw new Error("An error occurred while uploading files.");
+  }
+};
+
+export const deleteFiles = async (
+  fileUrls: string[],
+  listId: string,
+  taskId: string
+) => {
+  const task = await taskRepository.findOneBy({ id: taskId });
+  if (!task) {
+    throw new Error(`Task with ID ${taskId} not found`);
+  }
+
+  const fileDeletePromises = fileUrls.map(async (url) => {
+    try {
+      const storageRef = ref(storage, url);
+      await deleteObject(storageRef);
+    } catch (error) {
+      console.error("Error deleting file:", url, error);
+      throw error; // Re-throw the error to be caught by the outer promise
+    }
+  });
+
+  try {
+    await Promise.all(fileDeletePromises);
+    // Remove file URLs from the task
+    task.attachment = task.attachment.filter((url) => !fileUrls.includes(url));
+    await taskRepository.save(task);
+    const board = await getKanbanBoard(listId);
+    return board;
+  } catch (error) {
+    console.error("Error deleting files:", error);
+    throw new Error("An error occurred while deleting files.");
   }
 };

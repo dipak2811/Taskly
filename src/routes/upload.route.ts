@@ -13,5 +13,6 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 router.post("/", upload.array("files"), uploadController.uploadFile);
+router.post("/delete", uploadController.deleteFile);
 
 export default router;
